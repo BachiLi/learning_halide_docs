@@ -3,18 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Learning Halide for Machine Learning's documentation!
+Learning Halide for Machine Learning!
 ================================================================
+
+.. image:: halide_logo.png
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   what_is_halide
+   purpose
+   installation
+   hello_halide
+   rdom_and_update
+   auto_scheduling
+   manual_scheduling
+   gradient
+   pytorch
+   burst_denoising
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. ==================
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
