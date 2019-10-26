@@ -8,8 +8,11 @@ Modern tensor manipulation frameworks such as Tensorflow, PyTorch, Numpy, or Mat
 Halide resolves this by decoupling the computation into *algorithm* and *schedule*, where the algorithm represents the high-level intention, and the schedule represents the low-level code optimization. This allows the compiler to build explicit *loops* and transform them to generate general and high efficiency code, while the user can focus on the high-level algorithm. Halide provides automatic scheduler that can generate schedules for the users, or the user can choose to write their own schedules. The compiler takes the algorithm and schedule, generate code for different backends.
 
 Currently, Halide is embedded in both C++ and Python, and targets:
+
 - CPU architectures: X86, ARM, MIPS, Hexagon, PowerPC
+
 - Operating systems: Linux, Windows, Mac OS X, Android, iOS, Qualcomm QuRT
+
 - GPU Compute APIs: CUDA, OpenCL, OpenGL, OpenGL Compute Shaders, Apple Metal, Microsoft Direct X 12
 
 To give you a quick taste of what Halide looks like, here is what a 2D box filter looks like in Halide:
