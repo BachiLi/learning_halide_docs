@@ -14,7 +14,6 @@ Learning Halide for Machine Learning!
 
    what_is_halide
    purpose
-   installation
    hello_halide
    rdom_and_update
    auto_scheduling
