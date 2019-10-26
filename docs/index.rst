@@ -21,6 +21,7 @@ Learning Halide for Machine Learning!
    manual_scheduling
    gradient
    pytorch
+   demosaicing
    box_convolution
    burst_denoising
 
