@@ -80,7 +80,7 @@ Comparing to the following PyTorch implementation of the same 3x3 box filter:
 
             def blur_3x3(input)
               input = input.unsqueeze(3)
-              kernel = torch.ones(3, 1, 1, 3)
+              kernel = torch.ones(3, 1, 1, 3) / 3
               blur_x = torch.nn.functional.conv2d(input, kernel, groups=3)
               kernel = kernel.permute(0, 1, 3, 2)
               blur_y = torch.nn.functional.conv2d(blur_x, kernel, groups=3)
