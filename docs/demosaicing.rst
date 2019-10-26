@@ -1,2 +1,2 @@
-Tuning a demosaicing pipeline
+Example: tuning a demosaicing pipeline
 ================================================================
