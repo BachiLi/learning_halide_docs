@@ -78,14 +78,13 @@ Comparing to the following PyTorch implementation of the same 3x3 box filter:
 
         .. code-block:: py
 
-            def blur_3x3(input) {
+            def blur_3x3(input)
               input = input.unsqueeze(3)
               kernel = torch.ones(3, 1, 1, 3)
               blur_x = torch.nn.functional.conv2d(input, kernel, groups=3)
               kernel = kernel.permute(0, 1, 3, 2)
               blur_y = torch.nn.functional.conv2d(blur_x, kernel, groups=3)
               return blur_y
-            }
 
 While the line counts are similar, the PyTorch code reveals several issues of popular tensor frameworks. First, it assumes the images always come with the batch dimension, so we have to unsqueeze it. Second, we have to create a kernel with size of 9 for group convolution. Third, because there is no specialized version of conv2d, PyTorch is not able to optimize out the constant kernel. Finally, we need to allocate several intermediate buffers for the computation, making the computation slower than necessary.
 
