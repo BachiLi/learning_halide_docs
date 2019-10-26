@@ -88,7 +88,7 @@ While the line counts are similar, the PyTorch code reveals several issues of po
 
 - It assumes the images always come with the batch dimension, so we have to unsqueeze it.
 
-- We have to create a kernel with size of 9 for group convolution.
+- We have to create a kernel with size of 9 for group convolution, and we have to be familiar with the concept of group convolution to use it.
 
 - Because there is no specialized version of conv2d, PyTorch is not able to optimize out the constant kernel.
 

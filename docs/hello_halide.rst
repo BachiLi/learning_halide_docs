@@ -39,7 +39,7 @@ The following code *declares* a Halide function ``f``, that does not has a *defi
 
 The constructor of ``Func`` takes an optional name argument, that is useful for debugging and pretty printing.
 
-Each Halide function describes an *infinite* multi-dimensional domain of values. This means that, when accessing a Halide function, it always returns some value. This has the benefit of memory safety -- Halide guarantees that you can never have buffer overrun issues that causes segmentation faults. This relieves the programmers from having to worry about the boundaries of a computation.
+Each Halide function describes an *infinite* multi-dimensional domain of values. This means that, when accessing a Halide function, it always returns some value. This has the benefit of memory safety -- Halide guarantees that you can never have buffer overrun issues that cause segmentation faults. This relieves the programmers from having to worry about the boundaries of a computation.
 
 To describe the multi-dimensional domain, we need to name the coordinates. ``Var`` is designed for this:
 
