@@ -1,7 +1,7 @@
 Hello, Halide!
 ================================================================
 
-Halide employs a static metaprogramming model similar to Tensorflow or `Terra <http://terralang.org/>`_. You write C++ or Python programs that construct Halide *functions* that describe the algorithm. Halide then transforms these functions into lower-level code based on the schedules. This has two benefits. First, it allows the compiler frontend to be embedded in a popular language. This makes interaction of Halide with these language easier, and allows metaprogramming Halide functions using the host language. Second, in contrast to *interpreting* a dynamic computation graph, the static model enables Halide to generate more efficient code by employing compiler optimizations such as constant propagation and common subexpression elimination ahead of the time.
+Halide employs a static metaprogramming model similar to Tensorflow or `Terra <http://terralang.org/>`_. You write C++ or Python programs that construct Halide *functions* that describe the algorithm. Halide then transforms these functions into lower-level code based on the schedules. This has two benefits. First, it allows the compiler frontend to be embedded in a popular language. This makes interaction of Halide with these language easier, and allows metaprogramming Halide functions using the host language. Second, in contrast to *interpreting* a dynamic computation graph, the static model enables Halide to generate more efficient code by employing compiler optimizations ahead of the time.
 
 To use Halide in your program, you would need to include the Halide header in C++ or import the Halide module in Python:
 
