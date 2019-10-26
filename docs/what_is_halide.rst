@@ -95,7 +95,7 @@ Benchmarking on an Intel i7-6900K CPU and a NVIDIA Titan Xp GPU, we get the foll
 ===========  =========
 Halide CPU   3.426 ms
 PyTorch CPU  95.240 ms
-Halide CPU   0.264 ms
+Halide GPU   0.264 ms
 PyTorch GPU  1.894 ms
 ===========  =========
 
