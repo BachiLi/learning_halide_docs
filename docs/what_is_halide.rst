@@ -37,7 +37,7 @@ To give you a quick taste of what Halide looks like, here is what a 3x3 2D box f
 
         .. code-block:: py
 
-            def blur_3x3(input) {
+            def blur_3x3(input)
               blur_x, blur_y = hl.Func(), hl.Func()
               x, y, xi, yi = hl.Var(), hl.Var(), hl.Var(), hl.Var()
 
@@ -45,7 +45,6 @@ To give you a quick taste of what Halide looks like, here is what a 3x3 2D box f
               blur_y[x, y] = (blur_x[x, y-1] + blur_x[x, y] + blur_x[x, y+1])/3
 
               return blur_y
-            }
 
 Halide can either automatically generates the schedule for the code above, or the user can choose to specify the schedule manually, which looks like below:
 
