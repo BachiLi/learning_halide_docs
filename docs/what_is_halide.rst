@@ -99,6 +99,6 @@ Halide CPU   0.264 ms
 PyTorch GPU  1.894 ms
 ===========  =========
 
-Halide is 27.8x faster on CPU and 7x faster on GPU, thanks to the better scheduling.
+Halide is **27.8x** faster on CPU and **7x** faster on GPU, thanks to the better scheduling.
 
 Halide is not intended to replace PyTorch or Tensorflow though. It is a complement to them: when you found a case where efficient implementation in PyTorch or Tensorflow is difficult, you should consider using Halide, instead of diving in to the low-level C++/CUDA implementation. Another use case of Halide is when you want to write the same algorithm, but compile it to different hardwares. For example, you can write the code in Halide, train your algorithm on GPU, then retarget your code on to mobile systems.
