@@ -7,4 +7,4 @@ Halide already has an excellent `tutorial <https://halide-lang.org/tutorials/tut
 
 - We show real Halide code examples and provides explanation on them, so that the readers can have a better understanding of Halide's capability. We also briefly discuss the strategy one can do when manually scheduling the pipeline.
 
-- It shows how to incorporate learning components in Halide programs with automatic differentiation, and how Halide interacts with deep learning frameworks such as PyTorch.
+- We show how to incorporate learning components in Halide programs with automatic differentiation, and how Halide interacts with deep learning frameworks such as PyTorch.
