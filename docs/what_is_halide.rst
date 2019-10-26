@@ -15,42 +15,90 @@ Currently, Halide is embedded in both C++ and Python, and targets:
 
 - GPU Compute APIs: CUDA, OpenCL, OpenGL, OpenGL Compute Shaders, Apple Metal, Microsoft Direct X 12
 
-To give you a quick taste of what Halide looks like, here is what a 2D box filter looks like in Halide:
+To give you a quick taste of what Halide looks like, here is what a 3x3 2D box filter looks like in Halide algorithm:
 
 .. tabs::
 
-   .. code-tab:: c++
+   .. tab:: Halide (C++ frontend)
 
-    Func blur_3x3(Func input) {
-      Func blur_x, blur_y;
-      Var x, y, xi, yi;
+       .. code-block:: c++
 
-      // The algorithm - no storage or order
-      blur_x(x, y) = (input(x-1, y) + input(x, y) + input(x+1, y))/3;
-      blur_y(x, y) = (blur_x(x, y-1) + blur_x(x, y) + blur_x(x, y+1))/3;
+            Func blur_3x3(Func input) {
+              Func blur_x, blur_y;
+              Var x, y, c;
 
-      // The schedule - defines order, locality; implies storage
-      blur_y.tile(x, y, xi, yi, 256, 32)
-            .vectorize(xi, 8).parallel(y);
-      blur_x.compute_at(blur_y, x).vectorize(x, 8);
+              blur_x(x, y, c) = (input(x-1, y, c) + input(x, y, c) + input(x+1, y, c))/3;
+              blur_y(x, y, c) = (blur_x(x, y-1, c) + blur_x(x, y, c) + blur_x(x, y+1, c))/3;
 
-      return blur_y;
-    }
+              return blur_y;
+            }
 
-   .. code-tab:: py
+   .. tab:: Halide (Python frontend)
 
-    def blur_3x3(input) {
-      blur_x, blur_y = hl.Func(), hl.Func()
-      x, y, xi, yi = hl.Var(), hl.Var(), hl.Var(), hl.Var()
+        .. code-block:: py
 
-      # The algorithm - no storage or order
-      blur_x[x, y] = (input[x-1, y] + input[x, y] + input[x+1, y])/3
-      blur_y[x, y] = (blur_x[x, y-1] + blur_x[x, y] + blur_x[x, y+1])/3
+            def blur_3x3(input) {
+              blur_x, blur_y = hl.Func(), hl.Func()
+              x, y, xi, yi = hl.Var(), hl.Var(), hl.Var(), hl.Var()
 
-      # The schedule - defines order, locality; implies storage
-      blur_y.tile(x, y, xi, yi, 256, 32)
-            .vectorize(xi, 8).parallel(y)
-      blur_x.compute_at(blur_y, x).vectorize(x, 8)
+              blur_x[x, y] = (input[x-1, y] + input[x, y] + input[x+1, y])/3
+              blur_y[x, y] = (blur_x[x, y-1] + blur_x[x, y] + blur_x[x, y+1])/3
 
-      return blur_y
-    }
+              return blur_y
+            }
+
+   .. tab:: PyTorch
+
+        .. code-block:: py
+
+            def blur_3x3(input) {
+              input = input.unsqueeze(3)
+              kernel = torch.ones(3, 1, 1, 3)
+              blur_x = torch.nn.functional.conv2d(input, kernel, groups=3)
+              kernel = kernel.permute(0, 1, 3, 2)
+              blur_y = torch.nn.functional.conv2d(blur_x, kernel, groups=3)
+              return blur_y
+            }
+
+Halide can either automatically generates the schedule for the code above, or the user can choose to specify the schedule manually, which looks like below:
+
+.. tabs::
+
+   .. tab:: Halide (C++ frontend)
+
+       .. code-block:: c++
+
+            Var xi, yi
+            blur_y.tile(x, y, xi, yi, 256, 32)
+                .vectorize(xi, 8).parallel(y);
+            blur_x.compute_at(blur_y, x).vectorize(x, 8);
+
+   .. tab:: Halide (Python frontend)
+
+        .. code-block:: py
+
+            xi, yi = hl.Var(), hl.Var()
+            blur_y.tile(x, y, xi, yi, 256, 32)
+                .vectorize(xi, 8).parallel(y)
+            blur_x.compute_at(blur_y, x).vectorize(x, 8)
+
+The schedule optimizes the storage, order, and paralellism of the computation.
+
+Comparing to the following PyTorch implementation of the same 3x3 box filter:
+
+.. tabs::
+
+   .. tab:: PyTorch
+
+        .. code-block:: py
+
+            def blur_3x3(input) {
+              input = input.unsqueeze(3)
+              kernel = torch.ones(3, 1, 1, 3)
+              blur_x = torch.nn.functional.conv2d(input, kernel, groups=3)
+              kernel = kernel.permute(0, 1, 3, 2)
+              blur_y = torch.nn.functional.conv2d(blur_x, kernel, groups=3)
+              return blur_y
+            }
+
+While the line counts are similar, the PyTorch code reveals several issues of popular tensor frameworks. First, it assumes the images always come with the batch dimension, so we have to unsqueeze it. Second, we have to create a kernel with size of 9 for group convolution. Third, because there is no specialized version of conv2d, PyTorch is not able to optimize out the constant kernel. Finally, we need to allocate several intermediate buffers for the computation, making the computation slower than necessary.
