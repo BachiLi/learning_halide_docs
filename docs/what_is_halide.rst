@@ -13,39 +13,41 @@ Currently, Halide is embedded in both C++ and Python, and targets:
 - GPU Compute APIs: CUDA, OpenCL, OpenGL, OpenGL Compute Shaders, Apple Metal, Microsoft Direct X 12
 
 To give you a quick taste of what Halide looks like, here is what a 2D box filter looks like in Halide:
+
 .. tabs::
+
    .. code-tab:: c++
 
-Func blur_3x3(Func input) {
-  Func blur_x, blur_y;
-  Var x, y, xi, yi;
+    Func blur_3x3(Func input) {
+      Func blur_x, blur_y;
+      Var x, y, xi, yi;
 
-  // The algorithm - no storage or order
-  blur_x(x, y) = (input(x-1, y) + input(x, y) + input(x+1, y))/3;
-  blur_y(x, y) = (blur_x(x, y-1) + blur_x(x, y) + blur_x(x, y+1))/3;
+      // The algorithm - no storage or order
+      blur_x(x, y) = (input(x-1, y) + input(x, y) + input(x+1, y))/3;
+      blur_y(x, y) = (blur_x(x, y-1) + blur_x(x, y) + blur_x(x, y+1))/3;
 
-  // The schedule - defines order, locality; implies storage
-  blur_y.tile(x, y, xi, yi, 256, 32)
-        .vectorize(xi, 8).parallel(y);
-  blur_x.compute_at(blur_y, x).vectorize(x, 8);
+      // The schedule - defines order, locality; implies storage
+      blur_y.tile(x, y, xi, yi, 256, 32)
+            .vectorize(xi, 8).parallel(y);
+      blur_x.compute_at(blur_y, x).vectorize(x, 8);
 
-  return blur_y;
-}
+      return blur_y;
+    }
 
    .. code-tab:: py
 
-def blur_3x3(input) {
-  blur_x, blur_y = hl.Func(), hl.Func()
-  x, y, xi, yi = hl.Var(), hl.Var(), hl.Var(), hl.Var()
+    def blur_3x3(input) {
+      blur_x, blur_y = hl.Func(), hl.Func()
+      x, y, xi, yi = hl.Var(), hl.Var(), hl.Var(), hl.Var()
 
-  # The algorithm - no storage or order
-  blur_x[x, y] = (input[x-1, y] + input[x, y] + input[x+1, y])/3
-  blur_y[x, y] = (blur_x[x, y-1] + blur_x[x, y] + blur_x[x, y+1])/3
+      # The algorithm - no storage or order
+      blur_x[x, y] = (input[x-1, y] + input[x, y] + input[x+1, y])/3
+      blur_y[x, y] = (blur_x[x, y-1] + blur_x[x, y] + blur_x[x, y+1])/3
 
-  # The schedule - defines order, locality; implies storage
-  blur_y.tile(x, y, xi, yi, 256, 32)
-        .vectorize(xi, 8).parallel(y)
-  blur_x.compute_at(blur_y, x).vectorize(x, 8)
+      # The schedule - defines order, locality; implies storage
+      blur_y.tile(x, y, xi, yi, 256, 32)
+            .vectorize(xi, 8).parallel(y)
+      blur_x.compute_at(blur_y, x).vectorize(x, 8)
 
-  return blur_y
-}
+      return blur_y
+    }
