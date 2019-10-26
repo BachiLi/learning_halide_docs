@@ -90,3 +90,15 @@ Comparing to the following PyTorch implementation of the same 3x3 box filter:
 
 While the line counts are similar, the PyTorch code reveals several issues of popular tensor frameworks. First, it assumes the images always come with the batch dimension, so we have to unsqueeze it. Second, we have to create a kernel with size of 9 for group convolution. Third, because there is no specialized version of conv2d, PyTorch is not able to optimize out the constant kernel. Finally, we need to allocate several intermediate buffers for the computation, making the computation slower than necessary.
 
+Benchmarking on an Intel i7-6900K CPU and a NVIDIA Titan Xp GPU, we get the following running time on a 2560x1536x3 image:
+
+===========  =========
+Halide CPU   3.426 ms
+PyTorch CPU  95.240 ms
+Halide CPU   0.264 ms
+PyTorch GPU  1.894 ms
+===========  =========
+
+Halide is 27.8x faster on CPU and 7x faster on GPU, thanks to the better scheduling.
+
+Halide is not intended to replace PyTorch or Tensorflow though. It is a complement to them: when you found a case where efficient implementation in PyTorch or Tensorflow is difficult, you should consider using Halide, instead of diving in to the low-level C++/CUDA implementation. Another use case of Halide is when you want to write the same algorithm, but compile it to different hardwares. For example, you can write the code in Halide, train your algorithm on GPU, then retarget your code on to mobile systems.
