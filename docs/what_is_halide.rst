@@ -65,7 +65,7 @@ Halide can either automatically generates the schedule for the code above, or th
         .. code-block:: py
 
             xi, yi = hl.Var(), hl.Var()
-            blur_y.tile(x, y, xi, yi, 256, 32)
+            blur_y.tile(x, y, xi, yi, 256, 32) \
                 .vectorize(xi, 8).parallel(y)
             blur_x.compute_at(blur_y, x).vectorize(x, 8)
 
