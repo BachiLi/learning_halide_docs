@@ -39,10 +39,10 @@ To give you a quick taste of what Halide looks like, here is what a 3x3 2D box f
 
             def blur_3x3(input)
               blur_x, blur_y = hl.Func(), hl.Func()
-              x, y, xi, yi = hl.Var(), hl.Var(), hl.Var(), hl.Var()
+              x, y, c = hl.Var(), hl.Var(), hl.Var()
 
-              blur_x[x, y] = (input[x-1, y] + input[x, y] + input[x+1, y])/3
-              blur_y[x, y] = (blur_x[x, y-1] + blur_x[x, y] + blur_x[x, y+1])/3
+              blur_x[x, y, c] = (input[x-1, y, c] + input[x, y, c] + input[x+1, y, c])/3
+              blur_y[x, y, c] = (blur_x[x, y-1, c] + blur_x[x, y, c] + blur_x[x, y+1, c])/3
 
               return blur_y
 
