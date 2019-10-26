@@ -1,11 +1,11 @@
 What is Halide? Why should I use it?
 ================================================================
 
-*Halide* is a compiler focuses on efficiently expressing and compiling array computation, for image processing, computer vision, scientific computation, and machine learning. It provides concise syntax, along with powerful code optimization functionality to achieve both ease of programming and high performance. It also provides automatic gradient generation feature for machine learning and optimization applications.
+*Halide* is a compiler focuses on efficiently expressing and compiling array computation, for image processing, computer vision, scientific computation, and machine learning. It provides concise syntax, along with powerful code optimization functionality to achieve both ease of programming and high performance. It also provides automatic gradient generation features for machine learning and optimization applications.
 
-Modern tensor manipulation frameworks such as Tensorflow, PyTorch, Numpy, or Matlab provides efficient linear algebra building blocks, such as convolution or matrix multiplication, for the users to build their applications. When limited to their walled-gardens of pre-made, coarse-grained operations, these frameworks provide high-performance kernel implementations and automatic differentiation through chains of operations. As general programming languages, however, they are a poor fit for many array programs. Building new algorithms requires contorting a problem into existing building blocks. Even when done successfully, the resulting implementation is often both slow and memory-inefficient, saving and reloading entire arrays of intermediate results between each step, causing costly cache misses. As a result, practitioners often have to write low-level C or CUDA code as custom operators. Furthermore, it becomes even more tedious when the code needs to map to different platforms, such as non-NVIDIA GPUs, mobile CPUs, DSPs, etc.
+Modern tensor frameworks such as Tensorflow, PyTorch, Numpy, or Matlab provides efficient linear algebra building blocks, such as convolution or matrix multiplication, for the users to build their applications. When limited to their walled-gardens of pre-made, coarse-grained operations, these frameworks provide high-performance kernel implementations and automatic differentiation. As general programming languages, however, they are a poor fit for many array programs. Building new algorithms requires contorting a problem into existing building blocks. Even when done successfully, the resulting implementation is often both slow and memory-inefficient, saving and reloading entire arrays of intermediate results between each step, causing costly cache misses. As a result, practitioners often have to write low-level C or CUDA code as custom operators. Furthermore, it becomes even more tedious when the code needs to map to different platforms, such as non-NVIDIA GPUs, mobile CPUs, DSPs, etc.
 
-Halide resolves this by decoupling the computation into *algorithm* and *schedule*, where the algorithm represents the high-level intention, and the schedule represents the low-level code optimization. This allows the compiler to build explicit loops and transform them to generate general and high efficiency code, while the user can focus on the high-level algorithm. Halide provides automatic scheduler that can generate schedules for the users, or the user can choose to write their own schedules. The compiler takes the algorithm and schedule, generate code for different backends.
+Halide resolves this by decoupling the computation into *algorithm* and *schedule*, where the algorithm represents the high-level intention, and the schedule represents the low-level code optimization. This allows the compiler to build explicit loops and transform them to generate general and high efficiency code, while the user can focus on the high-level algorithm. Halide provides automatic schedule generation for the users, or the user can choose to write their own schedules. The compiler takes the algorithm and schedule, generate code for different backends.
 
 Currently, Halide is embedded in both C++ and Python, and targets:
 
@@ -15,7 +15,7 @@ Currently, Halide is embedded in both C++ and Python, and targets:
 
 - GPU Compute APIs: CUDA, OpenCL, OpenGL, OpenGL Compute Shaders, Apple Metal, Microsoft Direct X 12
 
-To give you a quick taste of what Halide looks like, here is what a 3x3 2D box filter looks like in Halide algorithm:
+To give you a quick taste of what Halide looks like, here is what a 3x3 2D box filter algorithm looks like in Halide:
 
 .. tabs::
 
@@ -54,19 +54,17 @@ Halide can either automatically generates the schedule for the code above, or th
 
        .. code-block:: c++
 
-            Var xi, yi
-            blur_y.tile(x, y, xi, yi, 256, 32)
-                .vectorize(xi, 8).parallel(y);
-            blur_x.compute_at(blur_y, x).vectorize(x, 8);
+            Var xi, yi;
+            blur_y.split(y, y, yi, 8).parallel(y).vectorize(x, 8);
+            blur_x.store_at(blur_y, y).compute_at(blur_y, yi).vectorize(x, 8);
 
    .. tab:: Halide (Python frontend)
 
         .. code-block:: py
 
             xi, yi = hl.Var(), hl.Var()
-            blur_y.tile(x, y, xi, yi, 256, 32) \
-                .vectorize(xi, 8).parallel(y)
-            blur_x.compute_at(blur_y, x).vectorize(x, 8)
+            blur_y.split(y, y, yi, 8).parallel(y).vectorize(x, 8)
+            blur_x.store_at(blur_y, y).compute_at(blur_y, yi).vectorize(x, 8)
 
 The schedule optimizes the storage, order, and paralellism of the computation.
 
@@ -99,4 +97,4 @@ PyTorch GPU  1.894 ms
 
 Halide is **27.8x** faster on CPU and **7x** faster on GPU, thanks to the better scheduling.
 
-Halide is not intended to replace PyTorch or Tensorflow though. It is a complement to them: when you find a case where efficient implementation in PyTorch or Tensorflow is necessary but difficult, you should first consider using Halide, instead of diving in to the low-level C++/CUDA implementation. Another use case of Halide is when you want to write the same algorithm, but compile it to different hardwares. For example, you can write the code in Halide, train your algorithm on GPU, then retarget your code on to mobile systems.
+Halide is not intended to replace PyTorch or Tensorflow though. It is a complement to them: when you find a case where efficient implementation in PyTorch or Tensorflow is necessary but difficult, you should first consider using Halide, instead of diving in to the low-level C++/CUDA implementation. Another use case of Halide is when you want to write the same algorithm, but compile it to different hardwares. For example, you can write the code in Halide, train your algorithm on GPU, then retarget your code to mobile systems.
