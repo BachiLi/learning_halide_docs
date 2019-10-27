@@ -1,9 +1,19 @@
 Hello, Halide!
 ================================================================
 
-Halide employs a static metaprogramming model similar to Tensorflow or `Terra <http://terralang.org/>`_. You write C++ or Python programs that construct Halide *functions* that describe the algorithm. Halide then transforms these functions into lower-level code based on the schedules. This has two benefits. First, it allows the compiler frontend to be embedded in a popular language. This makes interaction of Halide with these language easier, and allows metaprogramming Halide functions using the host language. Second, in contrast to *interpreting* a dynamic computation graph, the static model enables Halide to generate more efficient code by employing compiler optimizations ahead of the time. This is important for the scheduling part of Halide to have effect.
+Halide employs a static metaprogramming model similar to Tensorflow or `Terra
+<http://terralang.org/>`_. You write C++ or Python programs that construct
+Halide *functions* that describe the algorithm. Halide then transforms these
+functions into lower-level code based on the schedules. This has two benefits.
+First, it allows the compiler frontend to be embedded in a popular language.
+This makes interaction of Halide with these languages easier, and allows
+metaprogramming Halide functions using the host language. Second, in contrast
+to *interpreting* a dynamic computation graph, the static model enables Halide
+to generate more efficient code by employing compiler optimizations ahead of
+the time. This is important for the scheduling part of Halide to have effect.
 
-To use Halide in your program, you would need to include the Halide header in C++ or import the Halide module in Python:
+To use Halide in your program, you would need to include the Halide header in
+C++ or import the Halide module in Python:
 
 .. tabs::
 
@@ -13,7 +23,7 @@ To use Halide in your program, you would need to include the Halide header in C+
 
             #include <Halide.h>
 
-            using namespace halide;
+            using namespace Halide;
 
    .. tab:: Halide (Python frontend)
 
@@ -37,11 +47,18 @@ The following code *declares* a Halide function ``f``, that does not has a *defi
 
             f = hl.Func('f')
 
-The constructor of ``Func`` takes an optional name argument, that is useful for debugging and pretty printing.
+The constructor of ``Func`` takes an optional name argument that is useful for
+debugging and pretty printing.
 
-Each Halide function describes an *infinite* multi-dimensional domain of values. This means that, when accessing a Halide function, it always returns some value. This has the benefit of memory safety -- Halide guarantees that you can never have buffer overrun issues that cause segmentation faults. This relieves the programmers from having to worry about the boundaries of a computation.
+Each Halide function describes an *infinite* multi-dimensional domain of
+values. This means that, when accessing a Halide function, it always returns
+some value. This has the benefit of memory safety -- Halide guarantees that you
+can never have buffer overrun issues that cause segmentation faults. This
+relieves the programmers from having to worry about the boundaries of a
+computation.
 
-To describe the multi-dimensional domain, we need to name the coordinates. ``Var`` is designed for this:
+To describe the multi-dimensional domain, we need to name the coordinates.
+``Var`` is designed for this:
 
 .. tabs::
 
@@ -63,7 +80,7 @@ To describe the multi-dimensional domain, we need to name the coordinates. ``Var
             # we use hl.f32 for the conversion.
             f[x, y] = hl.f32(5.0)
 
-You can also define a *0-dimensional* Halide function for representing a scalar:
+You can also define *0-dimensional* Halide functions to represent scalars:
 
 .. tabs::
 
@@ -81,9 +98,12 @@ You can also define a *0-dimensional* Halide function for representing a scalar:
             g = hl.Func('g');
             g[()] = hl.f32(5.0)
 
-Keep in mind that you are metaprogramming Halide functions -- at this point there is no ``f`` or ``g`` actually allocated and store 5 everywhere.
+Keep in mind that you are metaprogramming Halide functions -- at this point
+there is no ``f`` or ``g`` actually allocated with the value 5 stored
+everywhere.
 
-To actually realize ``f``, you need to call ``f.realize``. This generates a ``Buffer`` that has a finite extent and actual values inside:
+To actually compute a window of ``f``, you need to call ``f.realize``. This
+generates a ``Buffer`` that has a finite extent and actual values inside:
 
 .. tabs::
 
@@ -110,7 +130,8 @@ To actually realize ``f``, you need to call ``f.realize``. This generates a ``Bu
                 for i in range(b.dim(0).extent()):
                     print('b({}, {}) = {}'.format(i, j, b(i, j)))
 
-To do interesting computation Halide needs to take some inputs. Inputs can also represented by ``Buffer``:
+To do interesting computation Halide needs to take some inputs. Inputs can be
+represented by ``Buffer``:
 
 .. tabs::
 
@@ -129,7 +150,8 @@ To do interesting computation Halide needs to take some inputs. Inputs can also 
             import numpy as np
             input2 = hl.Buffer(np.zeros(640, 480, 3))
 
-Alternatively they can be an ``ImageParam`` when you do not know the size of the input in advance:
+They can also be represented with an ``ImageParam``, which is useful when you
+do not know the size of the input in advance:
 
 .. tabs::
 
@@ -146,7 +168,8 @@ Alternatively they can be an ``ImageParam`` when you do not know the size of the
             # Construct an ImageParam with 3 dimensions
             input = hl.ImageParam(hl.Float(32), 3)
 
-``Buffer`` and ``ImageParam`` can be accessed by ``Func``. Here we define a Func that make the input two times brighter.
+``Buffer`` and ``ImageParam`` can be accessed as though they were any other
+``Func``. Here we define a Func that makes the input two times brighter.
 
 .. tabs::
 
@@ -166,7 +189,8 @@ Alternatively they can be an ``ImageParam`` when you do not know the size of the
             x, y, c = hl.Var('x'), hl.Var('y'), hl.Var('c')
             f[x, y, c] = 2 * input[x, y, c]
 
-Now we want to evaluate the Func. If you are using ``ImageParam``, you need to setup the content using ``Buffer`` first:
+Now we want to evaluate the Func. If you are using ``ImageParam``, you need to
+supply it with a ``Buffer`` first:
 
 .. tabs::
 
@@ -181,7 +205,7 @@ Now we want to evaluate the Func. If you are using ``ImageParam``, you need to s
 
         .. code-block:: py
 
-            b = hl.Buffer(hl.Float(32), (640, 480, 3));
+            b = hl.Buffer(hl.Float(32), (640, 480, 3))
             input.set(b)
 
 And we can realize the function like before:

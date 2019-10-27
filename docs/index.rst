@@ -6,7 +6,7 @@
 Learning Halide for Machine Learning!
 ================================================================
 
-.. image:: halide_logo.png
+.. image:: _static/halide_logo.png
 
 .. toctree::
    :maxdepth: 2
