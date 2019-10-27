@@ -18,6 +18,7 @@ Seeing an error like "Failed building wheel for sphinx-tabs" is OK
 Then you can build the website via
 
 ```
-$ cd docs
 $ make html
 ```
+
+The output will be in `./_build`
