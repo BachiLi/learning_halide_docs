@@ -2,7 +2,7 @@ The purposes of this document
 ================================================================
 
 Halide already has an excellent
-`tutorial<https://halide-lang.org/tutorials/tutorial_introduction.html>`_ that
+`tutorial <https://halide-lang.org/tutorials/tutorial_introduction.html>`_ that
 explains the syntax of the language and the basics of scheduling in detail.
 This document is an alternative to the official tutorial, that serves several
 complementary purposes:
