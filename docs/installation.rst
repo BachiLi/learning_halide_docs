@@ -6,11 +6,11 @@ Clone the repository to your local directory first:
 
 .. code-block:: bash
 
-	git clone https://github.com/halide/Halide#building-halide
+	git clone https://github.com/halide/Halide
 
 
-Then follow the `building instruction
-<https://github.com/halide/Halide#building-halide>`_ in the official readme.
+Then follow the `building instructions
+<https://github.com/halide/Halide#building-halide>`_ from the official readme.
 
 This tutorial also uses the Python bindings. To build the Python bindings,
 first build main Halide code. Then go to the ``python_bindings`` directory, and
@@ -20,7 +20,7 @@ install the following requirements:
 
 	$ pip install numpy scipy pillow imageio pybind11
 
-Next do
+Next run
 
 .. code-block:: bash
 
@@ -33,8 +33,8 @@ PYTHONPATH=/path/to/halide/python_bindings/bin:$PYTHONPATH``).
 
 There is one more step. You need to install the autoscheduler. There are
 several autoschedulers in Halide but we will use the ``gradient_autoscheduler``
-as it is currently the only autoscheduler that supports GPU scheduling. At the
-main directory of Halide:
+as it is currently the only autoscheduler that supports GPU scheduling. From the
+root directory of Halide:
 
 .. code-block:: bash
 
