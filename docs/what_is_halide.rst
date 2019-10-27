@@ -36,7 +36,8 @@ Currently, the Halide DSL is embedded in both C++ and Python, and targets:
 
 - Operating systems: Linux, Windows, Mac OS X, Android, iOS, Qualcomm QuRT
 
-- GPU Compute APIs: CUDA, OpenCL, OpenGL, OpenGL Compute Shaders, Apple Metal, Microsoft Direct X 12
+- GPU Compute APIs: CUDA, OpenCL, OpenGL, OpenGL Compute Shaders, Apple Metal,
+  Microsoft Direct X 12
 
 To give you a quick taste of what Halide looks like, here is a 3x3 2D box
 filter algorithm:
