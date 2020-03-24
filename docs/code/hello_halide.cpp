@@ -8,15 +8,13 @@ using namespace Halide::Tools;
 
 int main() {
 	// Constructing Halide functions statically.
-    
     ImageParam input(Float(32), 3);
     Func f("f");
     Var x("x"), y("y"), c("c");
     f(x, y, c) = min(2 * input(x, y, c), 1.f);
-
     
     // Actually compiling/executing the Halide functions.
-    
+    //
     // Setup the input by loading an image.
     Buffer<float> input_buffer = load_and_convert_image("images/rgb.png");
     input.set(input_buffer);
