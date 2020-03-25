@@ -166,8 +166,14 @@ Reduction variables can also be used at the left-hand side of updates, like in t
 example above. If an expression is too long, it can be temporarily stored in an ``Expr``.
 
 
-.. todo:: Examples for select
+.. todo::
 
-.. todo:: Examples for rdom.where
+    Examples for select
 
-.. todo:: Examples where we metaprogram a huge expression
+.. todo::
+
+    Examples for rdom.where
+
+.. todo::
+
+    Examples where we metaprogram a huge expression
