@@ -1,9 +1,9 @@
-.. Learning Halide for Machine Learning documentation master file, created by
+.. Learning Halide by Examples documentation master file, created by
    sphinx-quickstart on Fri Oct 25 14:59:26 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Learning Halide for Machine Learning!
+Learning Halide by Examples!
 ================================================================
 
 .. image:: _static/halide_logo.png

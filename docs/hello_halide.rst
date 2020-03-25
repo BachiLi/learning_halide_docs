@@ -12,7 +12,91 @@ to *interpreting* a dynamic computation graph, the static model enables Halide
 to generate more efficient code by employing compiler optimizations ahead of
 the time. This is important for the scheduling part of Halide to have effect.
 
-To use Halide in your program, you would need to include the Halide header in
+Following is a Halide program that loads an image, makes it two times brighter,
+and save to an image file.
+
+.. tabs::
+
+   .. tab:: Halide (C++ frontend)
+
+        .. code-block:: c++
+
+            // To compile & run on Linux
+            // g++ hello_halide.cpp -g -I /path/to/halide/distrib/include -I /path/to/halide/distrib/tools -L /path/to/halide/distrib/bin -lHalide `libpng-config --cflags --ldflags` -ljpeg -lpthread -ldl -o hello_halide -std=c++11
+            // LD_LIBRARY_PATH=/path/to/halide/distrib/bin ./hello_halide
+            // MacOS
+            // g++ hello_halide.cpp -g -I /path/to/halide/distrib/include -I /path/to/halide/distrib/tools -L /path/to/halide/distrib/bin -lHalide `libpng-config --cflags --ldflags` -ljpeg -o hello_halide -std=c++11
+            // DYLD_LIBRARY_PATH=/path/to/halide/distrib/bin ./hello_halide
+
+            #include <Halide.h>
+            #include <halide_image_io.h>
+
+            using namespace Halide;
+            using namespace Halide::Tools;
+
+            int main() {
+                // Constructing Halide functions statically.
+                //
+                ImageParam input(Float(32), 3);
+                Func f("f");
+                Var x("x"), y("y"), c("c");
+                // Double the values and clamp them by 1.
+                f(x, y, c) = min(2 * input(x, y, c), 1.f);
+                
+                // Actually compiling/executing the Halide functions.
+                //
+                // Setup the input by loading an image.
+                Buffer<float> input_buffer = load_and_convert_image("images/rgb.png");
+                input.set(input_buffer);
+                // Process the input by calling f.realize
+                Buffer<float> output_buffer = f.realize(
+                    input_buffer.width(), input_buffer.height(), input_buffer.channels());
+                // Save the image to a file.
+                convert_and_save_image(output_buffer, "output.png");
+            }
+
+
+   .. tab:: Halide (Python frontend)
+
+        .. code-block:: py
+        
+            import halide as hl
+            import imageio
+            import numpy as np
+
+            # Constructing Halide functions statically.
+            input = hl.ImageParam(hl.Float(32), 3)
+            f = hl.Func('f')
+            x, y, c = hl.Var('x'), hl.Var('y'), hl.Var('c')
+            # Double the values and clamp them by 1.
+            f[x, y, c] = hl.min(2 * input[x, y, c], 1.0)
+
+            # Actually compiling/executing the Halide functions.
+            #
+            # Setup the input by loading an image (Halide assumes Fortran ordering).
+            img = hl.Buffer(np.asfortranarray(imageio.imread('images/rgb.png').astype(np.float32) / 255.0))
+            input.set(img)
+            # Process the input by calling f.realize
+            output = f.realize(img.width(), img.height(), img.channels())
+            # Save the image to a file by converting to a numpy array.
+            output = np.array(output)
+            imageio.imsave('output.png', (output * 255.0).astype(np.uint8))
+
+This is our input:
+
+.. image:: code/images/rgb.png
+    :width: 320
+    :alt: input image
+
+And this is our output:
+
+.. image:: code/images/hello_halide_output.png
+    :width: 320
+    :alt: output image
+
+We will explain the code line by line.
+
+To use Halide in your program, you need to include the Halide header in
 C++ or import the Halide module in Python:
 
 .. tabs::
@@ -22,8 +106,10 @@ C++ or import the Halide module in Python:
         .. code-block:: c++
 
             #include <Halide.h>
+            #include <halide_image_io.h>
 
             using namespace Halide;
+            using namespace Halide::Tools; // For loading/saving images
 
    .. tab:: Halide (Python frontend)
 
@@ -31,6 +117,28 @@ C++ or import the Halide module in Python:
         
             import halide as hl
 
+Halide's input can be represented with an ``ImageParam``, which is a multi-dimensional array.
+The first arugment describes the type of the array, and the second argument describes the dimensionality.
+
+.. tabs::
+
+   .. tab:: Halide (C++ frontend)
+
+       .. code-block:: c++
+
+            ImageParam input(Float(32), 3);
+
+   .. tab:: Halide (Python frontend)
+
+        .. code-block:: py
+
+            # Construct an ImageParam with 3 dimensions
+            input = hl.ImageParam(hl.Float(32), 3)
+
+Remember that we are metaprogramming Halide code. The input does not have an actual value yet.
+We will define it's content when we actually execute the Halide program.
+
+Computations are defined in Halide functions.
 The following code *declares* a Halide function ``f``, that does not has a *definition* yet:
 
 .. tabs::
@@ -52,10 +160,10 @@ debugging and pretty printing.
 
 Each Halide function describes an *infinite* multi-dimensional domain of
 values. This means that, when accessing a Halide function, it always returns
-some value. This has the benefit of memory safety -- Halide guarantees that you
-can never have buffer overrun issues that cause segmentation faults. This
-relieves the programmers from having to worry about the boundaries of a
-computation.
+some value or triggers an out-of-bound assertion.
+This has the benefit of memory safety -- Halide guarantees that
+you can never have buffer overrun issues that cause segmentation faults.
+This relieves the programmers from having to worry about the boundaries of a computation.
 
 To describe the multi-dimensional domain, we need to name the coordinates.
 ``Var`` is designed for this:
@@ -66,21 +174,36 @@ To describe the multi-dimensional domain, we need to name the coordinates.
 
        .. code-block:: c++
 
-            Var x("x"), y("y");
-            // Initializes f to 5 everywhere
-            f(x, y) = 5.0f;
+            Var x("x"), y("y"), c("c");
 
    .. tab:: Halide (Python frontend)
 
         .. code-block:: py
 
-            x, y = hl.Var('x'), hl.Var('y')
-            # Initializes f to 5 everywhere
-            # Python has no single-precision floating point,
-            # we use hl.f32 for the conversion.
-            f[x, y] = hl.f32(5.0)
+            x, y, c = hl.Var('x'), hl.Var('y'), hl.Var('c')
 
-You can also define *0-dimensional* Halide functions to represent scalars:
+Once we have ``Func`` and ``Var`` declared, we are ready to describe our computation:
+
+.. tabs::
+
+   .. tab:: Halide (C++ frontend)
+
+       .. code-block:: c++
+
+          // Double the values and clamp them by 1.
+          f(x, y, c) = min(2 * input(x, y, c), 1.f);
+
+   .. tab:: Halide (Python frontend)
+
+        .. code-block:: py
+
+          # Double the values and clamp them by 1.
+          f[x, y, c] = hl.min(2 * input[x, y, c], 1.0)
+
+Again, keep in mind that you are metaprogramming Halide functions -- at this point
+there is no ``f`` computed. We don't even have our input contents yet!
+
+Apart from arrays, you can also define *0-dimensional* Halide functions to represent scalars:
 
 .. tabs::
 
@@ -98,11 +221,45 @@ You can also define *0-dimensional* Halide functions to represent scalars:
             g = hl.Func('g');
             g[()] = hl.f32(5.0)
 
-Keep in mind that you are metaprogramming Halide functions -- at this point
-there is no ``f`` or ``g`` actually allocated with the value 5 stored
-everywhere.
+Now we finished defining our Halide functions, we want to use it for computing something.
+First we need to setup our inputs. They are represented by Halide ``Buffer`` s.
+Unlike Halide ``Func`` s, they are multidimensional arrays that actually store values.
 
-To actually compute a window of ``f``, you need to call ``f.realize``. This
+.. tabs::
+
+   .. tab:: Halide (C++ frontend)
+
+       .. code-block:: c++
+
+            Buffer<float> input_buffer = load_and_convert_image("images/rgb.png");
+
+   .. tab:: Halide (Python frontend)
+
+        .. code-block:: py
+
+            input_buffer = hl.Buffer(np.asfortranarray(imageio.imread('images/rgb.png').astype(np.float32) / 255.0))
+
+Halide's Python frontend works seamlessly with numpy. However, note that
+Halide ``Buffer`` assumes Fortran ordering (dimensions to the left correspond to 
+innermost storage), so you want to use ``np.asfortranarray`` to convert your numpy arrays.
+
+Next we set the content of the ``input`` to the buffers we just created.
+
+.. tabs::
+
+   .. tab:: Halide (C++ frontend)
+
+       .. code-block:: c++
+
+            input.set(input_buffer);
+
+   .. tab:: Halide (Python frontend)
+
+        .. code-block:: py
+
+            input.set(input_buffer)
+
+Now, to actually compute a window of ``f``, we need to call ``f.realize``. This
 generates a ``Buffer`` that has a finite extent and actual values inside:
 
 .. tabs::
@@ -111,27 +268,18 @@ generates a ``Buffer`` that has a finite extent and actual values inside:
 
        .. code-block:: c++
 
-            // Generate a buffer with width 4 and height 6.
-            Buffer<float> b = f.realize(4, 6);
-            for (int j = 0; j < b.dim(1).extent(); j++) {
-                for (int i = 0; i < b.dim(0).extent(); i++) {
-                    // Should be 5 everywhere
-                    std::cout << "b(" << i << ", " << j << "):" << b(i, j) << std::endl;
-                }
-            }
+            // Process the input by calling f.realize
+            Buffer<float> output_buffer = f.realize(
+                input_buffer.width(), input_buffer.height(), input_buffer.channels());
 
    .. tab:: Halide (Python frontend)
 
         .. code-block:: py
 
-            # Generate a buffer with width 4 and height 6
-            b = f.realize(4, 6)
-            for j in range(b.dim(1).extent()):
-                for i in range(b.dim(0).extent()):
-                    print('b({}, {}) = {}'.format(i, j, b(i, j)))
+            # Process the input by calling f.realize
+            output = f.realize(input_buffer.width(), input_buffer.height(), input_buffer.channels())
 
-To do interesting computation Halide needs to take some inputs. Inputs can be
-represented by ``Buffer``:
+Finally we save the output image to a file, and we're done!
 
 .. tabs::
 
@@ -139,87 +287,13 @@ represented by ``Buffer``:
 
        .. code-block:: c++
 
-            Buffer<float> input(640, 480, 3);
+          // Save the image to a file.
+          convert_and_save_image(output_buffer, "output.png");
 
    .. tab:: Halide (Python frontend)
 
         .. code-block:: py
 
-            input = hl.Buffer(type = hl.Float(32), sizes = (640, 480, 3))
-            # hl.Buffer also plays well with numpy arrays
-            import numpy as np
-            input2 = hl.Buffer(np.zeros(640, 480, 3))
-
-They can also be represented with an ``ImageParam``, which is useful when you
-do not know the size of the input in advance:
-
-.. tabs::
-
-   .. tab:: Halide (C++ frontend)
-
-       .. code-block:: c++
-
-            ImageParam input(Float(32), 3 /* num. of dimensions */);
-
-   .. tab:: Halide (Python frontend)
-
-        .. code-block:: py
-
-            # Construct an ImageParam with 3 dimensions
-            input = hl.ImageParam(hl.Float(32), 3)
-
-``Buffer`` and ``ImageParam`` can be accessed as though they were any other
-``Func``. Here we define a Func that makes the input two times brighter.
-
-.. tabs::
-
-   .. tab:: Halide (C++ frontend)
-
-       .. code-block:: c++
-
-            Func f("f");
-            Var x("x"), y("y"), c("c");
-            f(x, y, c) = 2 * input(x, y, c);
-
-   .. tab:: Halide (Python frontend)
-
-        .. code-block:: py
-
-            f = hl.Func("f")
-            x, y, c = hl.Var('x'), hl.Var('y'), hl.Var('c')
-            f[x, y, c] = 2 * input[x, y, c]
-
-Now we want to evaluate the Func. If you are using ``ImageParam``, you need to
-supply it with a ``Buffer`` first:
-
-.. tabs::
-
-   .. tab:: Halide (C++ frontend)
-
-       .. code-block:: c++
-
-            Buffer<float> b(640, 480, 3);
-            input.set(b)
-
-   .. tab:: Halide (Python frontend)
-
-        .. code-block:: py
-
-            b = hl.Buffer(hl.Float(32), (640, 480, 3))
-            input.set(b)
-
-And we can realize the function like before:
-
-.. tabs::
-
-   .. tab:: Halide (C++ frontend)
-
-       .. code-block:: c++
-
-            Buffer<float> b = f.realize(640, 480, 3);
-
-   .. tab:: Halide (Python frontend)
-
-        .. code-block:: py
-
-            b = f.realize(640, 480, 3)
+          # Save the image to a file by converting to a numpy array.
+          output = np.array(output)
+          imageio.imsave('output.png', (output * 255.0).astype(np.uint8))
