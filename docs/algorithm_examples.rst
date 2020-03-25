@@ -126,3 +126,43 @@ for this:
             bounded_input = hl.BoundaryConditions.repeat_edge(input)
 
 Check out Halide's documentation for different kinds of boundary conditions.
+
+Also note that we omit the initialization of ``output``. Halide will automatically
+initialize it to zero.
+
+
+Histogram
+---------------------
+
+.. tabs::
+
+   .. tab:: Halide (C++ frontend)
+
+       .. code-block:: c++
+
+            Param<int> num_bins;
+            Param<float> hist_min, hist_max;
+            ImageParam input(Float(32), 1, "in");
+            Var x("x");
+            Func hist("hist");
+            RDom r(0, input.dim(0).extent());
+            Expr hist_index = cast<int>(num_bins * ((input(r) - hist_min) / (hist_max - hist_min)));
+            hist(hist_index) += 1;
+
+   .. tab:: Halide (Python frontend)
+
+        .. code-block:: py
+
+            num_bins = hl.Param(hl.Int(32))
+            hist_min, hist_max = hl.Param(hl.Float(32)), hl.Param(hl.Float(32))
+            input = hl.ImageParam(hl.Float(32), 1, 'in')
+            x = hl.Var('x')
+            hist = hl.Func('hist')
+            r = hl.RDom(0, input.dim(0).extent())
+            hist_index = hl.cast(hl.Int(32), (input(r) - hist_min) / (hist_max - hist_min);
+            hist(hist_index) += 1;
+
+Reduction variables can also be used at the left-hand side of updates, like in the histogram
+example above. If an expression is too long, it can be temporarily stored in an ``Expr``.
+
+
