@@ -16,7 +16,7 @@ Learning Halide by Examples!
    purpose
    installation
    hello_halide
-   rdom_and_update
+   algorithm_examples
    auto_scheduling
    manual_scheduling
    gradient

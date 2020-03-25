@@ -339,3 +339,38 @@ Finally we save the output image to a file, and we're done!
 
                 b = hl.Buffer.make_scalar(hl.Float(32))
                 b[()] = 1.0
+
+.. note::
+    We can use Halide ``Buffer`` s as if they are ``ImageParam``.
+
+    .. tabs::
+
+       .. tab:: Halide (C++ frontend)
+
+           .. code-block:: c++
+
+                Buffer<int> b(3);
+                Func f("f");
+                Var x("x");
+                f(x) = b(x);
+
+                // fill in b
+                b(0) = 1; b(1) = 2; b(2) = 5;
+                // realize f
+                f.realize(b.width());
+
+       .. tab:: Halide (Python frontend)
+
+            .. code-block:: py
+
+                b = hl.Buffer(hl.Int(32), 3)
+                f = hl.Func("f")
+                x = hl.Var("x")
+                f[x] = b[x]
+
+                # fill in b
+                b[0] = 1; b[1] = 2; b[2] = 5
+                # realize f
+                f.realize(b.width())
+
+In the next tutorial we will talk about how to write more complex Halide algorithms using examples.

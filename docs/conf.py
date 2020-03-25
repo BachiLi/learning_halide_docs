@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Learning Halide for Machine Learning'
-copyright = '2019, Tzu-Mao Li'
+copyright = '2020, Tzu-Mao Li'
 author = 'Tzu-Mao Li'
 
 
