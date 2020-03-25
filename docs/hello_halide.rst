@@ -2,7 +2,7 @@ Hello, Halide!
 ================================================================
 
 Halide employs a static metaprogramming model similar to Tensorflow or `Terra
-<http://terralang.org/>`_. You write C++ or Python programs that construct
+<http://terralang.org/>`_. We write C++ or Python programs that construct
 Halide *functions* that describe the algorithm. Halide then transforms these
 functions into lower-level code based on the schedules. This has two benefits.
 First, it allows the compiler frontend to be embedded in a popular language.
@@ -96,7 +96,7 @@ And this is our output:
 
 We will explain the code line by line.
 
-To use Halide in your program, you need to include the Halide header in
+To use Halide in our program, we need to include the Halide header in
 C++ or import the Halide module in Python:
 
 .. tabs::
@@ -162,7 +162,7 @@ Each Halide function describes an *infinite* multi-dimensional domain of
 values. This means that, when accessing a Halide function, it always returns
 some value or triggers an out-of-bound assertion.
 This has the benefit of memory safety -- Halide guarantees that
-you can never have buffer overrun issues that cause segmentation faults.
+we can never have buffer overrun issues that cause segmentation faults.
 This relieves the programmers from having to worry about the boundaries of a computation.
 
 To describe the multi-dimensional domain, we need to name the coordinates.
@@ -200,26 +200,27 @@ Once we have ``Func`` and ``Var`` declared, we are ready to describe our computa
           # Double the values and clamp them by 1.
           f[x, y, c] = hl.min(2 * input[x, y, c], 1.0)
 
-Again, keep in mind that you are metaprogramming Halide functions -- at this point
+Again, keep in mind that we are metaprogramming Halide functions -- at this point
 there is no ``f`` computed. We don't even have our input contents yet!
 
-Apart from arrays, you can also define *0-dimensional* Halide functions to represent scalars:
+.. note::
+    Apart from arrays, we can also define *0-dimensional* Halide functions to represent scalars:
 
-.. tabs::
+    .. tabs::
 
-   .. tab:: Halide (C++ frontend)
+       .. tab:: Halide (C++ frontend)
 
-       .. code-block:: c++
+           .. code-block:: c++
 
-            Func g("g");
-            g() = 5.0f;
+                Func g("g");
+                g() = 5.0f;
 
-   .. tab:: Halide (Python frontend)
+       .. tab:: Halide (Python frontend)
 
-        .. code-block:: py
+            .. code-block:: py
 
-            g = hl.Func('g');
-            g[()] = hl.f32(5.0)
+                g = hl.Func('g');
+                g[()] = hl.f32(5.0)
 
 Now we finished defining our Halide functions, we want to use it for computing something.
 First we need to setup our inputs. They are represented by Halide ``Buffer`` s.
@@ -241,7 +242,7 @@ Unlike Halide ``Func`` s, they are multidimensional arrays that actually store v
 
 Halide's Python frontend works seamlessly with numpy. However, note that
 Halide ``Buffer`` assumes Fortran ordering (dimensions to the left correspond to 
-innermost storage), so you want to use ``np.asfortranarray`` to convert your numpy arrays.
+innermost storage), so we want to use ``np.asfortranarray`` to convert our numpy arrays.
 
 Next we set the content of the ``input`` to the buffers we just created.
 
@@ -297,3 +298,44 @@ Finally we save the output image to a file, and we're done!
           # Save the image to a file by converting to a numpy array.
           output = np.array(output)
           imageio.imsave('output.png', (output * 255.0).astype(np.uint8))
+
+.. note::
+    We can read/write Halide ``Buffer`` s using ``operator()`` in C++ and ``__getitem__`` in Python.
+
+    .. tabs::
+
+       .. tab:: Halide (C++ frontend)
+
+           .. code-block:: c++
+
+                Buffer<float> b(100);
+                for (int i = 0; i < 100; i++) {
+                    b(i) = float(i);
+                }
+
+       .. tab:: Halide (Python frontend)
+
+            .. code-block:: py
+
+                b = hl.Buffer(hl.Float(32), 100);
+                for i in range(100):
+                    b[i] = float(i)
+
+.. note::
+    We can create a 0-dimensional ``Buffer`` using ``make_scalar()``.
+
+    .. tabs::
+
+       .. tab:: Halide (C++ frontend)
+
+           .. code-block:: c++
+
+                Buffer<float> b = Buffer<float>::make_scalar();
+                b() = 1.f;
+
+       .. tab:: Halide (Python frontend)
+
+            .. code-block:: py
+
+                b = hl.Buffer.make_scalar(hl.Float(32))
+                b[()] = 1.0
